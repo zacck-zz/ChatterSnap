@@ -26,74 +26,86 @@ import com.parse.SignUpCallback;
 
 public class MainActivity extends AppCompatActivity {
 
-  EditText username;
+	EditText username;
 
-    public void signupOrLogin(View view) {
+	public void signupOrLogin(View view) {
 
-        ParseUser.logInInBackground(String.valueOf(username.getText()), "pass", new LogInCallback() {
-            public void done(ParseUser user, ParseException e) {
-                if (user != null) {
+		if(!username.getText().toString().isEmpty()) {
 
-                    Log.i("AppInfo", "Logged In");
+			ParseUser.logInInBackground(String.valueOf(username.getText()), "pass", new LogInCallback() {
+				public void done(ParseUser user, ParseException e) {
+					if (user != null) {
 
-                } else {
+						Log.i("AppInfo", "Logged In");
 
-                    ParseUser newUser = new ParseUser();
-                    newUser.setUsername(String.valueOf(username.getText()));
-                    newUser.setPassword("pass");
+					} else {
 
-                    newUser.signUpInBackground(new SignUpCallback() {
-                        public void done(ParseException e) {
-                            if (e == null) {
+						//if login failed we will sign the user up
+						ParseUser newUser = new ParseUser();
+						newUser.setUsername(String.valueOf(username.getText()));
+						newUser.setPassword("pass");
 
-                                Log.i("AppInfo", "Signed up");
+						newUser.signUpInBackground(new SignUpCallback() {
+							public void done(ParseException e) {
+								if (e == null) {
 
-                            } else {
+									Log.i("AppInfo", "Signed up");
 
-                                Toast.makeText(getApplicationContext(), "Couldn't sign you up - please try again!", Toast.LENGTH_LONG).show();
+								} else {
 
-                            }
-                        }
-                    });
+									Toast.makeText(getApplicationContext(), "Couldn't sign you up - please try again!", Toast.LENGTH_LONG).show();
 
-
-                }
-            }
-        });
-
-    }
-
-  @Override
-  protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_main);
-
-    username = (EditText) findViewById(R.id.editText);
+								}
+							}
+						});
 
 
+					}
+				}
+			});
+		}
+		else
+		{
+			alert("Please Enter A Username to Proceed");
+		}
 
-    ParseAnalytics.trackAppOpenedInBackground(getIntent());
-  }
+	}
 
-  @Override
-  public boolean onCreateOptionsMenu(Menu menu) {
-    // Inflate the menu; this adds items to the action bar if it is present.
-    getMenuInflater().inflate(R.menu.menu_main, menu);
-    return true;
-  }
+	private void alert(String s)
+	{
+		Toast.makeText(getApplicationContext(), s, Toast.LENGTH_LONG).show();
+	}
 
-  @Override
-  public boolean onOptionsItemSelected(MenuItem item) {
-    // Handle action bar item clicks here. The action bar will
-    // automatically handle clicks on the Home/Up button, so long
-    // as you specify a parent activity in AndroidManifest.xml.
-    int id = item.getItemId();
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_main);
 
-    //noinspection SimplifiableIfStatement
-    if (id == R.id.action_settings) {
-      return true;
-    }
+		username = (EditText) findViewById(R.id.editText);
 
-    return super.onOptionsItemSelected(item);
-  }
+
+		ParseAnalytics.trackAppOpenedInBackground(getIntent());
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.menu_main, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// Handle action bar item clicks here. The action bar will
+		// automatically handle clicks on the Home/Up button, so long
+		// as you specify a parent activity in AndroidManifest.xml.
+		int id = item.getItemId();
+
+		//noinspection SimplifiableIfStatement
+		if (id == R.id.action_settings) {
+			return true;
+		}
+
+		return super.onOptionsItemSelected(item);
+	}
 }
