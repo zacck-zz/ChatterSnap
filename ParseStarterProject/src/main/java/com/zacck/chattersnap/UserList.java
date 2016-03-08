@@ -1,17 +1,24 @@
 package com.zacck.chattersnap;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.parse.FindCallback;
@@ -20,6 +27,7 @@ import com.parse.ParseFile;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
+import com.parse.SaveCallback;
 
 import java.io.ByteArrayOutputStream;
 import java.net.URI;
@@ -32,6 +40,7 @@ public class UserList extends AppCompatActivity implements AdapterView.OnItemCli
 	ArrayAdapter myUsersAdapter;
 	ListView userList;
 	int ImageRequestCode = 999;
+	Bitmap RecievedImage;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +54,7 @@ public class UserList extends AppCompatActivity implements AdapterView.OnItemCli
 		userList.setAdapter(myUsersAdapter);
 		userList.setOnItemClickListener(this);
 		getUsers();
+		checkForImages();
 
 
 
@@ -147,7 +157,22 @@ public class UserList extends AppCompatActivity implements AdapterView.OnItemCli
 				ParseObject sentImage = new ParseObject("Image");
 				sentImage.put("senderUsername", ParseUser.getCurrentUser().getUsername());
 				sentImage.put("recipientUsername", Usernames.get(requestCode));
+				Log.i("image sent to", Usernames.get(requestCode));
+				sentImage.put("image", mFile);
+				sentImage.saveInBackground(new SaveCallback() {
+					@Override
+					public void done(ParseException e) {
+						if(e == null)
+						{
+							alert("Image Sent Succesfully");
 
+						}
+						else
+						{
+							alert(e.getMessage());
+						}
+					}
+				});
 
 
 
@@ -159,4 +184,77 @@ public class UserList extends AppCompatActivity implements AdapterView.OnItemCli
 		}
 
 	}
+
+	public void checkForImages()
+	{
+		Log.i("i am", ParseUser.getCurrentUser().getUsername());
+		ParseQuery<ParseObject> myImagesQuery = ParseQuery.getQuery("Image");
+		myImagesQuery.whereEqualTo("recipientUsername", ParseUser.getCurrentUser().getUsername());
+		myImagesQuery.findInBackground(new FindCallback<ParseObject>() {
+			@Override
+			public void done(List<ParseObject> myImages, ParseException e) {
+				if (e == null) {
+					if (myImages.size() > 0) {
+						for (ParseObject thisImage : myImages) {
+							thisImage.deleteInBackground();
+							//Lets  Download the file
+							ParseFile mParseImage = thisImage.getParseFile("image");
+							byte[] mImageBytes = new byte[0];
+							try {
+								mImageBytes = mParseImage.getData();
+								RecievedImage = BitmapFactory.decodeByteArray(mImageBytes, 0, mImageBytes.length);
+
+							} catch (Exception innex) {
+								alert(innex.getMessage());
+							}
+							if (RecievedImage != null) {
+								AlertDialog.Builder mDialogBuilder = new AlertDialog.Builder(UserList.this);
+								mDialogBuilder.setTitle("You Have a Message");
+								TextView content = new TextView(UserList.this);
+								content.setText(Gravity.CENTER_HORIZONTAL);
+								content.setText(thisImage.getString("senderUsername") + "Has Sent You an Image!");
+								mDialogBuilder.setView(content);
+								mDialogBuilder.setPositiveButton("View", new DialogInterface.OnClickListener() {
+									@Override
+									public void onClick(DialogInterface dialog, int which) {
+
+										Log.i(getPackageName(), "Display Image");
+										AlertDialog.Builder mImageDialogBuilder = new AlertDialog.Builder(UserList.this);
+										mImageDialogBuilder.setTitle("Message");
+										ImageView content = new ImageView(UserList.this);
+										mImageDialogBuilder.setView(content);
+										mImageDialogBuilder.setPositiveButton("View", new DialogInterface.OnClickListener() {
+											@Override
+											public void onClick(DialogInterface dialog, int which) {
+
+												Log.i(getPackageName(), "Display Image");
+
+											}
+										});
+
+										mImageDialogBuilder.show();
+
+									}
+								});
+
+								mDialogBuilder.show();
+							}
+
+
+						}
+
+					} else {
+						alert("No Images");
+					}
+
+				} else {
+					alert(e.getMessage());
+				}
+			}
+		});
+
+
+	}
+
+
 }
