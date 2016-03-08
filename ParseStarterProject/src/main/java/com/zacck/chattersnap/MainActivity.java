@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
 
 								} else {
 
-									Toast.makeText(getApplicationContext(), "Couldn't sign you up - please try again!", Toast.LENGTH_LONG).show();
+									alert("Couldn't sign you up - please try again!");
 
 								}
 							}
