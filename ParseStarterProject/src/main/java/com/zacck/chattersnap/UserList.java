@@ -1,6 +1,7 @@
 package com.zacck.chattersnap;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
@@ -15,9 +16,12 @@ import android.widget.Toast;
 
 import com.parse.FindCallback;
 import com.parse.ParseException;
+import com.parse.ParseFile;
+import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
+import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -124,7 +128,34 @@ public class UserList extends AppCompatActivity implements AdapterView.OnItemCli
 		super.onActivityResult(requestCode, resultCode, data);
 		if(resultCode == RESULT_OK && data != null)
 		{
+			//Get the Path to the image that was selected
 			Uri selectedImagePath = data.getData();
+
+			//try get a bitmap image from the path
+			try
+			{
+				Bitmap mImageBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImagePath);
+
+				//convert image to byetArray for Uploading
+				ByteArrayOutputStream mImageStream = new ByteArrayOutputStream();
+				mImageBitmap.compress(Bitmap.CompressFormat.PNG, 100, mImageStream);
+				byte[] mImageBytes = mImageStream.toByteArray();
+
+				ParseFile mFile = new ParseFile("image.png",mImageBytes);
+
+				//Create an object and save it
+				ParseObject sentImage = new ParseObject("Image");
+				sentImage.put("senderUsername", ParseUser.getCurrentUser().getUsername());
+				sentImage.put("recipientUsername", Usernames.get(requestCode));
+
+
+
+
+			}
+			catch (Exception e)
+			{
+				alert(e.getMessage());
+			}
 		}
 
 	}
