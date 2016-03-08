@@ -8,6 +8,7 @@
  */
 package com.zacck.chattersnap;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -37,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
 					if (user != null) {
 
 						Log.i("AppInfo", "Logged In");
+						gotoUsers();
 
 					} else {
 
@@ -76,15 +78,23 @@ public class MainActivity extends AppCompatActivity {
 		Toast.makeText(getApplicationContext(), s, Toast.LENGTH_LONG).show();
 	}
 
+	public void gotoUsers()
+	{
+		Intent userListIntent = new Intent(MainActivity.this, UserList.class);
+		startActivity(userListIntent);
+	}
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-
+		ParseAnalytics.trackAppOpenedInBackground(getIntent());
 		username = (EditText) findViewById(R.id.editText);
 
-
-		ParseAnalytics.trackAppOpenedInBackground(getIntent());
+		if(ParseUser.getCurrentUser() != null)
+		{
+			gotoUsers();
+		}
 	}
 
 
